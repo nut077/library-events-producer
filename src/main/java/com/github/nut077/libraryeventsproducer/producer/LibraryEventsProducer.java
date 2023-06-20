@@ -2,7 +2,7 @@ package com.github.nut077.libraryeventsproducer.producer;
 
 import com.github.nut077.libraryeventsproducer.component.property.KafkaProperty;
 import com.github.nut077.libraryeventsproducer.domain.LibraryEvent;
-import com.github.nut077.libraryeventsproducer.utility.ObjectToJsonStringUtil;
+import com.github.nut077.libraryeventsproducer.utility.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -28,7 +28,7 @@ public class LibraryEventsProducer {
 
   public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent(LibraryEvent libraryEvent) {
     Integer key = libraryEvent.libraryEventId();
-    String value = ObjectToJsonStringUtil.convert(libraryEvent);
+    String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
     var resultCompletableFuture = kafkaTemplate.send(kafkaProperty.getTopic(), key, value);
     return resultCompletableFuture.whenComplete((sendResult, throwable) -> {
       if (throwable != null) {
@@ -41,7 +41,7 @@ public class LibraryEventsProducer {
 
   public SendResult<Integer, String> sendLibraryEventSync(LibraryEvent libraryEvent) throws ExecutionException, InterruptedException, TimeoutException {
     Integer key = libraryEvent.libraryEventId();
-    String value = ObjectToJsonStringUtil.convert(libraryEvent);
+    String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
     SendResult<Integer, String> sendResult = kafkaTemplate.send(kafkaProperty.getTopic(), key, value)
       .get(3, TimeUnit.SECONDS);
     handleSuccess(key, value, sendResult);
@@ -50,7 +50,7 @@ public class LibraryEventsProducer {
 
   public CompletableFuture<SendResult<Integer, String>> sendLibraryEventWithProducerRecord(LibraryEvent libraryEvent) {
     Integer key = libraryEvent.libraryEventId();
-    String value = ObjectToJsonStringUtil.convert(libraryEvent);
+    String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
     var producerRecord = buildProducerRecord(key, value);
     var resultCompletableFuture = kafkaTemplate.send(producerRecord);
     return resultCompletableFuture.whenComplete((sendResult, throwable) -> {
