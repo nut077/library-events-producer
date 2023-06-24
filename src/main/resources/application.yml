@@ -12,8 +12,14 @@ spring:
       default-topic: library-events
     producer:
       bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
-      key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        retries: 10 #max default 2147483647
     admin:
       properties:
         bootstrap.servers: localhost:9092,localhost:9093,localhost:9094
+custom:
+  formatdatetime:
+    date: dd-MM-yyyy
+    dateTime: dd-MM-yyyy HH:mm:ss

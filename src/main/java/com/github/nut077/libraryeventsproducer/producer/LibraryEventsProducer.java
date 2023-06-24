@@ -23,11 +23,11 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class LibraryEventsProducer {
 
-  private final KafkaTemplate<Integer, String> kafkaTemplate;
+  private final KafkaTemplate<String, String> kafkaTemplate;
   private final KafkaProperty kafkaProperty;
 
-  public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent(LibraryEvent libraryEvent) {
-    Integer key = libraryEvent.libraryEventId();
+  public CompletableFuture<SendResult<String, String>> sendLibraryEvent(LibraryEvent libraryEvent) {
+    String key = getKey(libraryEvent.id());
     String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
     var resultCompletableFuture = kafkaTemplate.send(kafkaProperty.getTopic(), key, value);
     return resultCompletableFuture.whenComplete((sendResult, throwable) -> {
@@ -39,17 +39,17 @@ public class LibraryEventsProducer {
     });
   }
 
-  public SendResult<Integer, String> sendLibraryEventSync(LibraryEvent libraryEvent) throws ExecutionException, InterruptedException, TimeoutException {
-    Integer key = libraryEvent.libraryEventId();
+  public SendResult<String, String> sendLibraryEventSync(LibraryEvent libraryEvent) throws ExecutionException, InterruptedException, TimeoutException {
+    String key = getKey(libraryEvent.id());
     String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
-    SendResult<Integer, String> sendResult = kafkaTemplate.send(kafkaProperty.getTopic(), key, value)
+    SendResult<String, String> sendResult = kafkaTemplate.send(kafkaProperty.getTopic(), key, value)
       .get(3, TimeUnit.SECONDS);
     handleSuccess(key, value, sendResult);
     return sendResult;
   }
 
-  public CompletableFuture<SendResult<Integer, String>> sendLibraryEventWithProducerRecord(LibraryEvent libraryEvent) {
-    Integer key = libraryEvent.libraryEventId();
+  public CompletableFuture<SendResult<String, String>> sendLibraryEventWithProducerRecord(LibraryEvent libraryEvent) {
+    String key = getKey(libraryEvent.id());
     String value = ObjectMapperUtil.convertObjectToJsonString(libraryEvent);
     var producerRecord = buildProducerRecord(key, value);
     var resultCompletableFuture = kafkaTemplate.send(producerRecord);
@@ -62,16 +62,24 @@ public class LibraryEventsProducer {
     });
   }
 
-  private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value) {
+  private String getKey(Long id) {
+    String key = null;
+    if (id != null) {
+      key = id.toString();
+    }
+    return key;
+  }
+
+  private ProducerRecord<String, String> buildProducerRecord(String key, String value) {
     List<Header> recordHeaders = List.of(new RecordHeader("event-source", "scanner".getBytes()));
     return new ProducerRecord<>(kafkaProperty.getTopic(), null, key, value, recordHeaders);
   }
 
-  private void handleSuccess(Integer key, String value, SendResult<Integer, String> sendResult) {
+  private void handleSuccess(String key, String value, SendResult<String, String> sendResult) {
     log.info("Message sent successfully for the key: {} and the value: {} , partition is {}", key, value, sendResult.getRecordMetadata().partition());
   }
 
-  private void handleFailure(Integer key, String value, Throwable throwable) {
+  private void handleFailure(String key, String value, Throwable throwable) {
     log.error("Error sending the message and the exception is {}", throwable.getMessage(), throwable);
   }
 }

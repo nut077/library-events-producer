@@ -9,7 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 @RequiredArgsConstructor
-public class AutoCreateConfig {
+public class AutoCreateTopicKafkaConfig {
 
   private final KafkaProperty kafkaProperty;
 

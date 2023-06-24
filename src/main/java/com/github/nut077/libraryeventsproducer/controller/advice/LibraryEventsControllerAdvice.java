@@ -25,4 +25,5 @@ public class LibraryEventsControllerAdvice {
     log.info("errorMessage : {}", errorMessage);
     return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
   }
+
 }

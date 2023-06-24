@@ -6,7 +6,6 @@ import com.github.nut077.libraryeventsproducer.domain.LibraryEventType;
 import com.github.nut077.libraryeventsproducer.utility.ObjectMapperUtil;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +36,13 @@ class LibraryEventsControllerTest {
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-  private Consumer<Integer, String> consumer;
+  private Consumer<String, String> consumer;
 
   @BeforeEach
   void setUp() {
     var configs = KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker);
     configs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-    consumer = new DefaultKafkaConsumerFactory<>(configs, new IntegerDeserializer(), new StringDeserializer())
+    consumer = new DefaultKafkaConsumerFactory<>(configs, new StringDeserializer(), new StringDeserializer())
       .createConsumer();
     embeddedKafkaBroker.consumeFromAllEmbeddedTopics(consumer);
   }
@@ -76,7 +75,7 @@ class LibraryEventsControllerTest {
   }
 
   private LibraryEvent getLibraryEvent() {
-    return new LibraryEvent(1, LibraryEventType.NEW, new Book(1, "world", "freedom"));
+    return new LibraryEvent(1L, LibraryEventType.NEW, new Book(1L, "world", "freedom"));
   }
 
 }
